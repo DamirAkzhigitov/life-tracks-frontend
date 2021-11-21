@@ -3,6 +3,7 @@
     <div v-if="rooms && rooms.length">
       <div v-for="room in rooms" :key="room.id">
         <div>{{ room.id }}</div>
+        <div>members: {{ room.members }}</div>
         <div>
           <button @click="enterRoom(room)">Войти</button>
         </div>
@@ -16,7 +17,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 
 let headers = new Headers()
 
@@ -26,28 +27,31 @@ headers.append('Origin', 'http://localhost:3000')
 
 const socket = ref(null)
 
-const router = useRouter()
+// const router = useRouter()
 
-const rooms = ref(null)
+const rooms = ref([])
 
-onMounted(() => {
-  socket.value = new WebSocket('ws://localhost:8080')
+const auth = async () => {
+  try {
+    const response = await fetch('http://localhost:8080/auth', {
+      method: 'GET',
+      credentials: 'include',
+    })
 
-  socket.value.addEventListener('open', function (event) {
-    socket.value.send('Hello Server!')
-  })
+    const data = await response.text()
 
-  socket.value.addEventListener('message', function (event) {
-    console.log('Message from server ', event.data)
+    document.cookie = `user=${data}`
+  } catch (e) {
+    console.log(e)
+  }
 
-    document.cookie = `user=${event.data}`
-  })
-
-  onClickGetRooms()
-})
+  // console.log('enterRoom after rooms.value: ', rooms.value)
+}
 
 const enterRoom = async (room) => {
-  console.log(`Вход в комнату: #${room.id} `)
+  // console.log(`Вход в комнату: #${room.id} `)
+  //
+  // console.log('enterRoom before rooms.value: ', rooms.value)
 
   try {
     const response = await fetch('http://localhost:8080/enter', {
@@ -56,12 +60,14 @@ const enterRoom = async (room) => {
       body: JSON.stringify({ id: room.id }),
     })
 
-    rooms.value = await response.json()
+    const data = await response.json()
 
-    await router.push(`/damir/${room.id}`)
+    // console.log(data.text)
   } catch (e) {
     console.log(e)
   }
+
+  console.log('enterRoom after rooms.value: ', rooms.value)
 }
 
 const onClickCreateRoom = async () => {
@@ -72,7 +78,7 @@ const onClickCreateRoom = async () => {
 
     const data = await response.json()
 
-    rooms.value.push(data)
+    // rooms.value.push(data)
   } catch (e) {
     console.log(e)
   }
@@ -89,4 +95,31 @@ const onClickGetRooms = async () => {
     console.log(e)
   }
 }
+
+onMounted(async () => {
+  await auth()
+
+  socket.value = new WebSocket('ws://localhost:8080')
+
+  socket.value.addEventListener('open', function (event) {
+    // socket.value.send('Hello Server!')
+  })
+
+  socket.value.addEventListener('message', function (event) {
+    console.log('new message from WS')
+    try {
+      const roomData = JSON.parse(event.data)
+
+      console.log('message: ', roomData)
+
+      rooms.value = roomData
+    } catch (e) {
+      console.log('error = ', e)
+    }
+
+    // document.cookie = `user=${event.data}`
+  })
+
+  await onClickGetRooms()
+})
 </script>
