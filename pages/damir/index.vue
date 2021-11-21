@@ -6,7 +6,10 @@
         <div>members: {{ room.members }}</div>
         <div>свободно мест: {{ room.max - room.members.length }}</div>
         <div>
-          <button @click="enterRoom(room)">Войти</button>
+          <button v-if="!inRoom(room)" @click="enterRoom(room)">Войти</button>
+          <button v-if="userVip(room)" @click="startGame(room)">
+            Начать игру
+          </button>
         </div>
       </div>
     </div>
@@ -18,6 +21,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+const currentUser = ref('')
 // import { useRouter } from 'vue-router'
 
 let headers = new Headers()
@@ -32,7 +36,33 @@ const socket = ref(null)
 
 const rooms = ref([])
 
+const inRoom = (room) => {
+  return room.members.find((member) => member === currentUser.value)
+}
+
+const userVip = (room) => {
+  const isCurrentUserVip = room.members.filter((member) => {
+    return member.name === currentUser.value && member.creator
+  })
+
+  return !!isCurrentUserVip.length
+}
+
+const startGame = (room) => {
+  console.log(`star game at room ${room}`)
+}
+
 const auth = async () => {
+  const oldAuth = localStorage.getItem('auth')
+
+  if (oldAuth) {
+    document.cookie = `user=${oldAuth}`
+
+    currentUser.value = oldAuth
+
+    return
+  }
+
   try {
     const response = await fetch('http://192.168.1.68:8080/auth', {
       method: 'GET',
@@ -40,6 +70,10 @@ const auth = async () => {
     })
 
     const data = await response.text()
+
+    localStorage.setItem('auth', data)
+
+    currentUser.value = data
 
     document.cookie = `user=${data}`
   } catch (e) {
