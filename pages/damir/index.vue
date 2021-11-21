@@ -7,7 +7,7 @@
         <div>свободно мест: {{ room.max - room.members.length }}</div>
         <div>
           <button v-if="!inRoom(room)" @click="enterRoom(room)">Войти</button>
-          <button v-if="userVip(room)" @click="startGame(room)">
+          <button v-if="isUserCanStartGame(room)" @click="startGame(room)">
             Начать игру
           </button>
         </div>
@@ -19,9 +19,10 @@
   </div>
 </template>
 
-<script setup>
-import { onMounted, ref } from 'vue'
-const currentUser = ref('')
+<script setup lang="ts">
+import { onMounted, ref, Ref } from 'vue'
+import { RoomItem } from '~/models'
+const currentUser: Ref<string> = ref('')
 // import { useRouter } from 'vue-router'
 
 let headers = new Headers()
@@ -32,24 +33,30 @@ headers.append('Origin', 'http://192.168.1.68:3000')
 
 const socket = ref(null)
 
-// const router = useRouter()
+const rooms: Ref<RoomItem[]> = ref([])
 
-const rooms = ref([])
-
-const inRoom = (room) => {
-  return room.members.find((member) => member === currentUser.value)
+const inRoom = (room: RoomItem) => {
+  return room.members.find((member) => member.id === currentUser.value)
 }
 
-const userVip = (room) => {
-  const isCurrentUserVip = room.members.filter((member) => {
-    return member.name === currentUser.value && member.creator
+const isUserCreator = (room: RoomItem) => {
+  console.log('currentUser.value: ', currentUser.value)
+
+  const isCurrentUserCreator = room.members.filter((member) => {
+    return member.id === currentUser.value && member.creator
   })
 
-  return !!isCurrentUserVip.length
+  return !!isCurrentUserCreator.length
 }
 
-const startGame = (room) => {
-  console.log(`star game at room ${room}`)
+const isUserCanStartGame = (room: RoomItem) => {
+  const isCreator = isUserCreator(room)
+
+  return isCreator && room.members.length > 1
+}
+
+const startGame = (room: RoomItem) => {
+  console.log(`star game at room ${room.id}`)
 }
 
 const auth = async () => {
@@ -81,7 +88,7 @@ const auth = async () => {
   }
 }
 
-const enterRoom = async (room) => {
+const enterRoom = async (room: RoomItem) => {
   try {
     await fetch('http://192.168.1.68:8080/enter', {
       method: 'POST',
@@ -92,8 +99,6 @@ const enterRoom = async (room) => {
   } catch (e) {
     console.log(e)
   }
-
-  console.log('enterRoom after rooms.value: ', rooms.value)
 }
 
 const onClickCreateRoom = async () => {
@@ -123,7 +128,7 @@ onMounted(async () => {
 
   socket.value = new WebSocket('ws://192.168.1.68:8080')
 
-  socket.value.addEventListener('open', function (event) {
+  socket.value.addEventListener('open', function () {
     // socket.value.send('Hello Server!')
   })
 
