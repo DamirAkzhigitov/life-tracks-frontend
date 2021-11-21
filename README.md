@@ -1,6 +1,5 @@
-# Nuxt 3 Minimal Starter
+# Life Tracks FrontEnd
 
-We recommend to look at the [documentation](https://v3.nuxtjs.org).
 
 ## Setup
 
@@ -27,3 +26,5 @@ yarn build
 ```
 
 Checkout the [deployment documentation](https://v3.nuxtjs.org/docs/deployment).
+
+Используется фреймворк nuxt3 , находится в стадии beta [документация](https://v3.nuxtjs.org).
