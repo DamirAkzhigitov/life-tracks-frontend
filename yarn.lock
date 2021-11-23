@@ -557,7 +557,7 @@
     "@typescript-eslint/parser" "^5.1.0"
     eslint-import-resolver-typescript "^2.5.0"
 
-"@nuxtjs/eslint-config@7.0.0":
+"@nuxtjs/eslint-config@7.0.0", "@nuxtjs/eslint-config@^7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@nuxtjs/eslint-config/-/eslint-config-7.0.0.tgz#fd9cd08163a3582138f2c4dbb7951e32093b089c"
   integrity sha512-GiDdRrAbqzo2PMDLw8taVpN16QdvcoEj08Cf3SKIhhg6fXlI2mcwSURJ85XHFvpKuRIWMxfkQ9RRuH6IUhiBqQ==

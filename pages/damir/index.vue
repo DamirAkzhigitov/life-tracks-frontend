@@ -1,10 +1,21 @@
 <template>
   <div>
+    <div class="box">Current user {{ currentUser }}</div>
+
     <div v-if="rooms && rooms.length">
-      <div v-for="room in rooms" :key="room.id" class="room">
+      <div v-for="room in rooms" :key="room.id" class="room box">
         <div>{{ room.id }}</div>
-        <div>members: {{ room.members }}</div>
-        <div>свободно мест: {{ room.max - room.members.length }}</div>
+        <div class="card-container">
+          <div v-for="member in room.members" :key="member.id" class="card">
+            <div>
+              {{ member.id }}
+            </div>
+            <div>Создатель: {{ member.creator ? 'Да' : 'Нет' }}</div>
+          </div>
+        </div>
+        <div>
+          свободно мест: {{ room.max - room.members.length }} из {{ room.max }}
+        </div>
         <div>
           <button v-if="!inRoom(room)" @click="enterRoom(room)">Войти</button>
           <button v-if="isUserCanStartGame(room)" @click="startGame(room)">
@@ -13,17 +24,21 @@
         </div>
       </div>
     </div>
-    <div class="button-container">
+    <div class="box">
       <button @click="onClickCreateRoom">Создать комнату</button>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, ref, Ref } from 'vue'
 import { RoomItem } from '~/models'
+import { BASE_URL } from '~/constants'
+import { useRouter } from 'vue-router'
+
 const currentUser: Ref<string> = ref('')
-// import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 let headers = new Headers()
 
@@ -55,25 +70,36 @@ const isUserCanStartGame = (room: RoomItem) => {
   return isCreator && room.members.length > 1
 }
 
-const startGame = (room: RoomItem) => {
-  console.log(`star game at room ${room.id}`)
+const startGame = async (room: RoomItem) => {
+  try {
+    const payload = JSON.stringify({
+      id: room.id,
+    })
+
+    await fetch(`${BASE_URL}/startGame`, {
+      method: 'POST',
+      credentials: 'include',
+      mode: 'cors',
+      body: payload,
+      headers: {
+        Authorization: localStorage.getItem('auth') || '',
+      },
+    })
+
+    await router.push(`/damir/${room.id}`)
+  } catch (e) {
+    console.log('startGame ', e)
+  }
 }
 
 const auth = async () => {
-  const oldAuth = localStorage.getItem('auth')
-
-  if (oldAuth) {
-    document.cookie = `user=${oldAuth}`
-
-    currentUser.value = oldAuth
-
-    return
-  }
-
   try {
-    const response = await fetch('http://192.168.1.68:8080/auth', {
+    const response = await fetch(`${BASE_URL}/auth`, {
       method: 'GET',
       credentials: 'include',
+      headers: {
+        Authorization: localStorage.getItem('auth') || '',
+      },
     })
 
     const data = await response.text()
@@ -82,7 +108,7 @@ const auth = async () => {
 
     currentUser.value = data
 
-    document.cookie = `user=${data}`
+    // if (!oldAuth) document.cookie = `user=${data}`
   } catch (e) {
     console.log(e)
   }
@@ -90,10 +116,13 @@ const auth = async () => {
 
 const enterRoom = async (room: RoomItem) => {
   try {
-    await fetch('http://192.168.1.68:8080/enter', {
+    await fetch(`${BASE_URL}/enter`, {
       method: 'POST',
       credentials: 'include',
       mode: 'cors',
+      headers: {
+        Authorization: localStorage.getItem('auth') || '',
+      },
       body: JSON.stringify({ id: room.id }),
     })
   } catch (e) {
@@ -103,8 +132,11 @@ const enterRoom = async (room: RoomItem) => {
 
 const onClickCreateRoom = async () => {
   try {
-    await fetch('http://192.168.1.68:8080/newRoom', {
+    await fetch(`${BASE_URL}/newRoom`, {
       credentials: 'include',
+      headers: {
+        Authorization: localStorage.getItem('auth') || '',
+      },
     })
   } catch (e) {
     console.log(e)
@@ -113,8 +145,11 @@ const onClickCreateRoom = async () => {
 
 const onClickGetRooms = async () => {
   try {
-    const response = await fetch('http://192.168.1.68:8080/rooms', {
+    const response = await fetch(`${BASE_URL}/rooms`, {
       credentials: 'include',
+      headers: {
+        Authorization: localStorage.getItem('auth') || '',
+      },
     })
 
     rooms.value = await response.json()
@@ -133,14 +168,11 @@ onMounted(async () => {
   })
 
   socket.value.addEventListener('message', function (event) {
-    console.log('new message from WS')
     try {
       rooms.value = JSON.parse(event.data)
     } catch (e) {
       console.log('error = ', e)
     }
-
-    // document.cookie = `user=${event.data}`
   })
 
   await onClickGetRooms()
@@ -148,13 +180,33 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.room {
-  border: 1px solid black;
+.box {
   padding: 20px;
   margin: 10px;
 }
-.button-container {
-  padding: 20px;
-  margin: 10px;
+
+.card-container {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.card {
+  border: 1px solid black;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.card:not(:first-child) {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.room {
+  border: 1px solid black;
+}
+
+.room > * {
+  margin-bottom: 10px;
 }
 </style>
