@@ -21,6 +21,7 @@
     "nuxt3": "latest",
     "prettier": "^2.4.1",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.2",
+    "worker-loader": "^3.0.8"
   }
 }
