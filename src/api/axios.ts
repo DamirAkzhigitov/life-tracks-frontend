@@ -3,8 +3,7 @@ import { BASE_URL } from '~/constants'
 
 export const API = axios.create({ baseURL: BASE_URL })
 
-export const setAuthToken = (token: string) => {
-  console.log('setAuthToken, token : ', token)
+export const setAuthToken = (token: string): void => {
   if (token) {
     //applying token
     API.defaults.headers.common['Authorization'] = token

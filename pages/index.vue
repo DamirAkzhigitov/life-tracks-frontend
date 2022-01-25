@@ -44,12 +44,6 @@ import {
 const currentUser: Ref<string> = ref('')
 
 const router = useRouter()
-//
-// let headers = new Headers()
-//
-// headers.append('Content-Type', 'application/json')
-// headers.append('Accept', 'application/json')
-// headers.append('Origin', 'http://192.168.1.68:3000')
 
 const socket: Ref<WebSocket | null> = ref(null)
 const rooms: Ref<RoomItem[]> = ref([])
@@ -110,9 +104,7 @@ const onClickGetRooms = async () => {
   if (response) rooms.value = response
 }
 
-onMounted(async () => {
-  currentUser.value = await auth()
-
+const setupWebSocket = () => {
   socket.value = new WebSocket('ws://localhost:8080')
 
   socket.value.addEventListener('open', function () {
@@ -126,11 +118,18 @@ onMounted(async () => {
       console.log('error = ', e)
     }
   })
+}
+
+onMounted(async () => {
+  currentUser.value = await auth()
+
+  setupWebSocket()
+
   await onClickGetRooms()
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .box {
   padding: 20px;
   margin: 10px;

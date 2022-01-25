@@ -1,5 +1,16 @@
-# Life Tracks FrontEnd
+# Life Tracks FrontEnd (Nuxt 3)
 
+## Tech stack
+
+- Javascript 
+- TypeScript
+- Nuxt.js (v3)
+- SASS,
+- Websockets
+
+сode сheck: **Eslint** 
+
+code formatting: **Prettier**
 
 ## Setup
 
