@@ -34,6 +34,7 @@
 import { onMounted, ref, Ref } from 'vue'
 import { RoomItem } from '~/models'
 import { BASE_URL } from '~/constants'
+import { checkAuthCookie } from '~/boot/auth'
 import {
   callCreateRoomApi,
   getAllRooms,
@@ -44,6 +45,8 @@ import {
 const currentUser: Ref<string> = ref('')
 
 const router = useRouter()
+
+checkAuthCookie()
 
 const socket: Ref<WebSocket | null> = ref(null)
 const rooms: Ref<RoomItem[]> = ref([])

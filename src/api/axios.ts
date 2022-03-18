@@ -12,3 +12,15 @@ export const setAuthToken = (token: string): void => {
     delete API.defaults.headers.common['Authorization']
   }
 }
+
+export const getRequest = async <Type>(url: string): Promise<Type | null> => {
+  try {
+    const response = await API.get(url)
+
+    return response.data
+
+  } catch (e) {
+
+    return null
+  }
+}
