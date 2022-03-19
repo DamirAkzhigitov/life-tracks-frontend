@@ -1,5 +1,6 @@
 <template>
   <div>
+    <router-link to='/stream'>to stram</router-link>
     <div class="box">Current user {{ currentUser }}</div>
 
     <div v-if="rooms && rooms.length">
@@ -41,14 +42,28 @@ import {
   auth,
   callEnterRoomApi,
 } from '~/src/api'
+import { socketFactory } from '~~/boot/socket'
 
+const { onListenMessage, setupSocketModule } = socketFactory()
+
+checkAuthCookie()
+
+onBeforeMount(() => {
+  setupSocketModule()
+
+  onListenMessage((data: { type: string, value: RoomItem[]}[]) => {
+    data.forEach((item) => {
+      if (item.type && item.type === 'rooms') {
+        rooms.value = item.value
+      }
+    })
+
+  })
+})
 const currentUser: Ref<string> = ref('')
 
 const router = useRouter()
 
-checkAuthCookie()
-
-const socket: Ref<WebSocket | null> = ref(null)
 const rooms: Ref<RoomItem[]> = ref([])
 
 const inRoom = (room: RoomItem) => {
@@ -107,29 +122,14 @@ const onClickGetRooms = async () => {
   if (response) rooms.value = response
 }
 
-const setupWebSocket = () => {
-  socket.value = new WebSocket('ws://localhost:8080')
-
-  socket.value.addEventListener('open', function () {
-    // socket.value.send('Hello Server!')
-  })
-
-  socket.value.addEventListener('message', function (event) {
-    try {
-      rooms.value = JSON.parse(event.data)
-    } catch (e) {
-      console.log('error = ', e)
-    }
-  })
-}
-
 onMounted(async () => {
   currentUser.value = await auth()
 
-  setupWebSocket()
+  setupSocketModule()
 
   await onClickGetRooms()
 })
+
 </script>
 
 <style lang="scss" scoped>

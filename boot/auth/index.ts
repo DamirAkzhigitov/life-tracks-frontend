@@ -6,15 +6,24 @@ const checkAuthCookie = async () => {
 
     console.log('cookie: ', docCookie)
 
+    if (docCookie) {
+      setAuthToken(docCookie)
+    }
+
     if (!docCookie) {
-      console.log('user not login')
       const user = await getRequest<string>('/auth')
+
+      console.log('user not login')
 
       if (!user) return
 
       setAuthToken(user)
 
+      document.cookie = user
+
       console.log('user: ', user)
+    } else {
+
     }
 
   }
