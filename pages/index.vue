@@ -47,6 +47,7 @@ import { socketFactory } from '~~/boot/socket'
 const { onListenMessage, setupSocketModule } = socketFactory()
 
 checkAuthCookie()
+
 onBeforeMount(() => {
   setupSocketModule()
 
@@ -59,13 +60,9 @@ onBeforeMount(() => {
 
   })
 })
-//
-
-
 const currentUser: Ref<string> = ref('')
 
 const router = useRouter()
-
 
 const rooms: Ref<RoomItem[]> = ref([])
 
@@ -125,8 +122,6 @@ const onClickGetRooms = async () => {
   if (response) rooms.value = response
 }
 
-
-
 onMounted(async () => {
   currentUser.value = await auth()
 
@@ -134,6 +129,7 @@ onMounted(async () => {
 
   await onClickGetRooms()
 })
+
 </script>
 
 <style lang="scss" scoped>

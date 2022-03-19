@@ -10,16 +10,19 @@ const socketFactory = () => {
     })
   }
 
+  const checkSocketStatus = () => {
+    return !!socket.value
+  }
+
   const onListenMessage = <T>(callBackFunction: (a: T) => void) => {
-    console.log('onListenMessage')
+    // console.log('onListenMessage')
     if (!socket.value) return
 
     socket.value.addEventListener('message', function (event) {
-      console.log('event.data:' , event.data)
+      // console.log('event.data:' , event.data)
       try {
         const data = JSON.parse(event.data)
-        console.log('message, data: ', data)
-
+        // console.log('message, data: ', data)
 
         callBackFunction(data)
       } catch (e) {
@@ -30,13 +33,10 @@ const socketFactory = () => {
 
   return {
     socket,
+    checkSocketStatus,
     setupSocketModule,
-    onListenMessage
+    onListenMessage,
   }
 }
 
-
-
-export {
-  socketFactory
-}
+export { socketFactory }
